@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_KEY = 'fca_live_RLe9HgQ4euNW9MK0EvzMsie1PPA1NoaAjy2WKALZ';
+const API_KEY = process.env.APIKEY;
 
 interface CurrencyRate {
   value: string;

@@ -1,36 +1,64 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
-## Getting Started
+# Currency and Crypto Converter
 
-First, run the development server:
+This project is a web application that allows users to convert between traditional currencies and cryptocurrencies. The application uses Ant Design components for the user interface and fetches exchange rates from FreeCurrencyAPI for traditional currencies and Binance API for cryptocurrencies.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Features
+- Convert between traditional currencies (e.g., USD, EUR, TRY)
+- Convert between cryptocurrencies (e.g., BTC, ETH, USDT)
+- Switch between currency and crypto conversion modes
+- Automatically fetches the latest exchange rates
+- User-friendly interface with Ant Design components
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Installation
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Clone the repository:
+    ```bash
+    git clone <repository_url>
+    ```
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+2. Navigate to the project directory:
+    ```bash
+    cd <project_directory>
+    ```
 
-## Learn More
+3. Install the dependencies:
+    ```bash
+    npm install
+    ```
 
-To learn more about Next.js, take a look at the following resources:
+4. Set up environment variables:
+    - Create a `.env` file in the root directory.
+    - Add your FreeCurrencyAPI and Binance API keys to the `.env` file:
+        ```plaintext
+        FREECURRENCYAPI_KEY=your_freecurrencyapi_key
+        BINANCE_API_KEY=your_binance_api_key
+        ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+5. Start the development server:
+    ```bash
+    npm run dev
+    ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+## Usage
 
-## Deploy on Vercel
+- Open your browser and navigate to `http://localhost:3000`.
+- Select the conversion mode (Currency or Crypto) using the radio buttons.
+- Enter the amount to be converted in the input field.
+- Select the source and target currencies/cryptocurrencies from the dropdown menus.
+- The converted amount will be displayed automatically.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Project Structure
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+- `pages/api/getCurrencies.ts`: Fetches exchange rates for traditional currencies from FreeCurrencyAPI.
+- `pages/api/getCrypto.ts`: Fetches exchange rates for cryptocurrencies from Binance API.
+- `pages/index.tsx`: Main component of the application, handles user inputs and conversion logic.
+- `styles/page.module.scss`: Styles for the application using SCSS.
+
+## Dependencies
+
+- `react`: JavaScript library for building user interfaces.
+- `next`: React framework for server-side rendering and static site generation.
+- `antd`: Ant Design components for UI.
+- `axios`: Promise-based HTTP client for making API requests.
+- `dotenv`: Module to load environment variables from a `.env` file.
