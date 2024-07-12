@@ -1,95 +1,198 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+'use client'
+import { useState, useEffect } from 'react';
+import styles from './styles/page.module.scss';
+import { Layout, Row, Col, Select, Input, Radio } from 'antd';
+import { SwapOutlined } from '@ant-design/icons';
+import { fetchCurrencies } from './api/getCurrencies';
+import { fetchCrypto, CryptoRate } from './api/getCrypto';
 
-export default function Home() {
-  return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>app/page.tsx</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
+const { Header, Content, Footer } = Layout;
 
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
+interface CurrencyRate {
+    value: string;
+    label: string;
+    rate: number;
+}
 
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
+export default function App() {
+    const [currencyType, setCurrencyType] = useState('currency');
+    const [currencies, setCurrencies] = useState<CurrencyRate[]>([]);
+    const [cryptoRates, setCryptoRates] = useState<CryptoRate[]>([]);
+    const [amount, setAmount] = useState<number | string>(0);
+    const [fromCurrency, setFromCurrency] = useState('USD');
+    const [toCurrency, setToCurrency] = useState('TRY');
+    const [convertedAmount, setConvertedAmount] = useState(0);
+    const [currencyRates, setCurrencyRates] = useState<{ [key: string]: number }>({});
 
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
+    const handleCurrencyTypeChange = (e: any) => {
+        const newCurrencyType = e.target.value;
+        setCurrencyType(newCurrencyType);
+        setAmount(0);
+        setConvertedAmount(0);
+        if (newCurrencyType === 'currency') {
+            setFromCurrency('USD');
+            setToCurrency('TRY');
+        } else {
+            setFromCurrency('BTCUSDT')
+            setToCurrency('ETHUSDT');
+        }
+    };
 
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore starter templates for Next.js.</p>
-        </a>
+    useEffect(() => {
+        if (currencyType === 'currency') {
+            fetchCurrencies().then(data => {
+                setCurrencies(data);
+                const rates = data.reduce((acc, cur) => {
+                    acc[cur.value] = cur.rate;
+                    return acc;
+                }, {} as { [key: string]: number });
+                setCurrencyRates(rates);
+            });
+        } else if (currencyType === 'crypto') {
+            fetchCrypto().then(data => {
+                setCryptoRates(data);
+                const rates = data.reduce((acc, cur) => {
+                    acc[cur.value] = cur.rate;
+                    return acc;
+                }, {} as { [key: string]: number });
+                setCurrencyRates(rates);
+            });
+        }
+    }, [currencyType]);
 
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
-  );
+    const handleAmountChange = (e: any) => {
+        const value = e.target.value;
+        if (value === '' || isNaN(value)) {
+            setAmount('');
+            setConvertedAmount(0);
+        } else {
+            setAmount(parseFloat(value));
+        }
+    };
+
+    const handleFromCurrencyChange = (value: string) => {
+        setFromCurrency(value);
+    };
+
+    const handleToCurrencyChange = (value: string) => {
+        setToCurrency(value);
+    };
+    
+    const convertCurrency = (amount: number, fromRate: number, toRate: number): number => {
+        return (amount / fromRate) * toRate;
+    };
+    
+    const convertCrypto = (amount: number, fromRate: number, toRate: number): number => {
+        return (amount * fromRate) / toRate;
+    };
+    
+
+    useEffect(() => {
+        if (fromCurrency && toCurrency && amount && currencyRates[fromCurrency] && currencyRates[toCurrency]) {
+            if (currencyType === 'currency') {
+                const converted = convertCurrency(parseFloat(amount as string), currencyRates[fromCurrency], currencyRates[toCurrency]);
+                setConvertedAmount(converted);
+            } else if (currencyType === 'crypto') {
+                const converted = convertCrypto(parseFloat(amount as string), currencyRates[fromCurrency], currencyRates[toCurrency]);
+                setConvertedAmount(converted);
+            }
+        }
+    }, [amount, fromCurrency, toCurrency, currencyRates, currencyType]);
+
+    return (
+        <Layout style={{height: '100vh'}}>
+            <Header style={{background: '#fff', height: '10vh', textAlign: 'center', padding: '0px'}}>
+                <h1>Currency Converter</h1>
+            </Header>
+
+            <Content style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1.5rem',
+                padding: '24px'                
+            }}>
+
+                <Row style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    background: '#fff'
+                }}>
+                    <Col>
+                        <Radio.Group onChange={handleCurrencyTypeChange} value={currencyType}>
+                            <Radio style={{ borderRadius: '0px' }} value="currency">Currency</Radio>
+                            <Radio style={{ borderRadius: '0px' }} value="crypto">Crypto</Radio>
+                        </Radio.Group>
+                    </Col>
+                </Row>
+
+                <Row style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    background: '#fff',
+                    gap: '1rem'
+                }}>
+
+                    <Col>
+                        <Input.Group compact>
+                            <Input 
+                                style={{ width: 'calc(100% - 100px)' }} 
+                                value={amount} 
+                                onChange={handleAmountChange} 
+                            />
+                            <Select 
+                                value={fromCurrency} 
+                                style={{ width: 100 }} 
+                                onChange={handleFromCurrencyChange}
+                            >
+                                {currencyType === 'currency' && currencies.map(currency => (
+                                    <Select.Option key={currency.value} value={currency.value}>
+                                        {currency.label}
+                                    </Select.Option>
+                                ))}
+                                {currencyType === 'crypto' && cryptoRates.map(crypto => (
+                                    <Select.Option key={crypto.value} value={crypto.value}>
+                                        {crypto.label}
+                                    </Select.Option>
+                                ))}
+                            </Select>
+                        </Input.Group>
+                    </Col>
+
+                    <Col>
+                        <SwapOutlined style={{ fontSize: '18px', color: '#000' }} />
+                    </Col>
+
+                    <Col>
+                        <Input.Group compact>
+                            <Input 
+                                style={{ width: 'calc(100% - 100px)' }} 
+                                value={convertedAmount.toFixed(6)} 
+                                disabled 
+                            />
+                            <Select 
+                                value={toCurrency} 
+                                style={{ width: 100 }} 
+                                onChange={handleToCurrencyChange}
+                            >
+                                {currencyType === 'currency' && currencies.map(currency => (
+                                    <Select.Option key={currency.value} value={currency.value}>
+                                        {currency.label}
+                                    </Select.Option>
+                                ))}
+                                {currencyType === 'crypto' && cryptoRates.map(crypto => (
+                                    <Select.Option key={crypto.value} value={crypto.value}>
+                                        {crypto.label}
+                                    </Select.Option>
+                                ))}
+                            </Select>
+                        </Input.Group>
+                    </Col>
+                </Row>
+            </Content>
+        </Layout>
+    );
 }
